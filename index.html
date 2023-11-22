@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/main.css">
+    <title>Web Based To Do List App</title>
+</head>
+<body>
+    <h1>
+        Web Based ToDo List
+    </h1>
+    <div class="">
+        <p>
+            <label for="Task title">
+                Task Title
+            </label>
+        <input type="text"  id="todofield" placeholder="Type..">
+        </p>
+        <p>
+            <label for="Complexity">
+                How important it is?
+            </label>
+            <select  id="complexity">
+                <option value="">
+                    Select Important Level
+                </option>
+                <option value="Easy">
+                    Easy
+                </option>
+                <option value="Medium">
+                    Medium
+                </option>
+                <option value="Hard">
+                    Hard
+                </option>
+            </select>
+        </p>
+        <p>
+            <label for="Time of Task">
+                When to do task/event?
+            </label>
+            <input type="time"  id="tasktime">
+        </p>
+        <button type="button" id="saveButton">
+            Save task
+        </button>
+    </div>
+    <script src="./js/main.js"></script>
+</body>
+</html>
