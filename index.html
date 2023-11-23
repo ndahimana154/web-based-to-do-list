@@ -11,6 +11,7 @@
         Web Based ToDo List
     </h1>
     <div class="">
+        <span id="errorMessage"></span>
         <p>
             <label for="Task title">
                 Task Title
@@ -22,7 +23,7 @@
                 How important it is?
             </label>
             <select  id="complexity">
-                <option value="">
+                <option value="Select Important Level">
                     Select Important Level
                 </option>
                 <option value="Easy">
@@ -40,12 +41,13 @@
             <label for="Time of Task">
                 When to do task/event?
             </label>
-            <input type="time"  id="tasktime">
+            <input type="datetime-local"  id="tasktime">
         </p>
         <button type="button" id="saveButton">
             Save task
         </button>
     </div>
+    <div id="tasksDisplay"></div>
     <script src="./js/main.js"></script>
 </body>
 </html>
