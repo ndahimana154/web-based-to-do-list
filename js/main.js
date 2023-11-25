@@ -1,77 +1,155 @@
-// Getting the random ID
-const randomTaskId = () => {
-  const randomTime = new Date().getTime();
-  const randomNumber = Math.floor(Math.random() + 200 * 125896);
-  return randomNumber * randomTime;
-};
-// Initializing the tasks
-var tasks = loadFromLocalStorage();
+loadTasks();
 
+function addTask() {
+  const taskInput = document.getElementById("taskInput");
+  const taskDateTime = document.getElementById("taskDateTime");
+  const errorMessage = document.getElementById("errorMessage");
 
-
-// Getting DOM Elements
-var errorPlace = document.querySelector("#errorMessage");
-const taskTitleInput = document.querySelector("#todofield");
-const taskComplexityInput = document.querySelector("#complexity");
-const taskTimeInput = document.querySelector("#tasktime");
-const taskSaveButton = document.querySelector("#saveButton");
-
-// Saving tasks in the tasks Array
-taskSaveButton.addEventListener("click", () => {
-  //   Getting the input values
-  var taskTitle = taskTitleInput.value;
-  var taskComplexity = taskComplexityInput.value;
-  var taskTime = taskTimeInput.value;
-  if (taskTitle === "") {
-    errorPlace.textContent = `Task title can't be empty.`;
+  if (taskInput.value.trim() === "") {
+    errorMessage.textContent = "Please enter a task.";
     return;
   }
-  if (taskComplexity === "Select Important Level" || taskComplexity === "") {
-    errorPlace.textContent = "Please select Complexity level.";
-  }
-  alert(taskTime);
 
-  var newTask = {
-    id: randomTaskId(),
-    name: taskTitle,
-    Complexity: taskComplexity,
+  errorMessage.textContent = "";
+
+  const taskList = document.getElementById("taskList");
+  const taskText = taskInput.value;
+  const taskTime = taskDateTime.value;
+  const taskItem = document.createElement("li");
+
+  taskItem.innerHTML = `
+        <span class="task-time">${taskTime}</span>
+        <span>${taskText}</span>
+        
+        <div class="task-actions">
+            <button class="delete-btn" onclick="deleteTask(this)"><i class="fas fa-trash"></i></button>
+            <button class="edit-btn" onclick="editTask(this)"><i class="fas fa-edit"></i></button>
+            <button class="important-btn" onclick="toggleImportance(this)"><i class="fas fa-star"></i></button>
+            <button class="complete-btn" onclick="toggleCompletion(this)"><i class="fas fa-check"></i></button>
+        </div>
+    `;
+
+  taskList.insertBefore(taskItem, taskList.firstChild);
+
+  saveTask({
+    text: taskText,
     time: taskTime,
-    isCompleted: false,
-  };
-  tasks.push(newTask);
-  //   send in local storage
-  saveToLocalStorage(tasks);
-  // Reload the tasks
-  console.log(tasks);
-});
+    important: false,
+    completed: false,
+  });
 
-// Save tasks to the localStorage
-function saveToLocalStorage(tasks) {
+  taskInput.value = "";
+  taskDateTime.value = "";
+}
+
+function deleteTask(button) {
+  const taskItem = button.parentNode.parentNode;
+  const taskText = taskItem.querySelector("span").textContent;
+
+  if (confirm(`Are you sure you want to delete "${taskText}"?`)) {
+    taskItem.remove();
+    deleteTaskFromStorage(taskText);
+  }
+}
+
+function saveTask(task) {
+  let tasks = getTasksFromStorage();
+  tasks.unshift({ ...task, completed: false, important: false });
   localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
-// Load from the local storage
-function loadFromLocalStorage() {
-  const storedTasks = localStorage.getItem("tasks");
-  return storedTasks ? JSON.parse(storedTasks) : [];
+function deleteTaskFromStorage(taskText) {
+  let tasks = getTasksFromStorage();
+  tasks = tasks.filter((task) => task.text !== taskText);
+  localStorage.setItem("tasks", JSON.stringify(tasks));
 }
 
+function getTasksFromStorage() {
+  return JSON.parse(localStorage.getItem("tasks")) || [];
+}
 
-// Getting the Div for displaying the tasks
-var tasksDisplayer = document.querySelector("#tasksDisplay");
-loadTasksInDiv();
-// Loading the tasks into the Div
-function loadTasksInDiv() {
+function loadTasks() {
+  const taskList = document.getElementById("taskList");
+  const tasks = getTasksFromStorage();
+
   tasks.forEach((task) => {
-    var taskElement = document.createElement("div");
-    taskElement.innerHTML = `
-    <h2>${task.id}</h2>
-    <p>${task.Complexity}</p>
-    <p>
-    <span> ${task.time}<span>
-    <b> ${task.isCompleted}</b>
-    </p>
-    `;
-    tasksDisplayer.appendChild(taskElement);
+    const taskItem = document.createElement("li");
+    taskItem.innerHTML = `
+            <span class="task-time">${task.time}</span>
+            <span>${task.text}</span>
+            
+            <div class="task-actions">
+                <button class="delete-btn" onclick="deleteTask(this)"><i class="fas fa-trash"></i></button>
+                <button class="edit-btn" onclick="editTask(this)"><i class="fas fa-edit"></i></button>
+                <button class="important-btn" onclick="toggleImportance(this)"><i class="fas fa-star"></i></button>
+                <button class="complete-btn" onclick="toggleCompletion(this)"><i class="fas fa-check"></i></button>
+            </div>
+        `;
+
+    if (task.completed) {
+      taskItem.classList.add("completed");
+    }
+
+    if (task.important) {
+      taskItem.classList.add("important");
+    }
+
+    taskList.appendChild(taskItem);
   });
+}
+
+function editTask(button) {
+  const taskItem = button.parentNode.parentNode;
+  const taskTextElement = taskItem.querySelector("span");
+  const taskText = taskTextElement.textContent;
+  const newTaskText = prompt("Edit task:", taskText);
+
+  if (newTaskText !== null) {
+    taskTextElement.textContent = newTaskText;
+    updateTaskInStorage(taskText, newTaskText);
+  }
+}
+
+function updateTaskInStorage(oldText, newText) {
+  let tasks = getTasksFromStorage();
+  const taskToUpdate = tasks.find((task) => task.text === oldText);
+
+  if (taskToUpdate) {
+    taskToUpdate.text = newText;
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+}
+
+function toggleImportance(button) {
+  const taskItem = button.parentNode.parentNode;
+  taskItem.classList.toggle("important");
+  updateTaskImportanceInStorage(taskItem);
+}
+
+function updateTaskImportanceInStorage(taskItem) {
+  const tasks = getTasksFromStorage();
+  const taskText = taskItem.querySelector("span").textContent;
+  const taskToUpdate = tasks.find((task) => task.text === taskText);
+
+  if (taskToUpdate) {
+    taskToUpdate.important = !taskToUpdate.important;
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
+}
+
+function toggleCompletion(button) {
+  const taskItem = button.parentNode.parentNode;
+  taskItem.classList.toggle("completed");
+  updateTaskCompletionInStorage(taskItem);
+}
+
+function updateTaskCompletionInStorage(taskItem) {
+  const tasks = getTasksFromStorage();
+  const taskText = taskItem.querySelector("span").textContent;
+  const taskToUpdate = tasks.find((task) => task.text === taskText);
+
+  if (taskToUpdate) {
+    taskToUpdate.completed = !taskToUpdate.completed;
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }
 }
